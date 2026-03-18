@@ -1,0 +1,4 @@
+/target
+.claude/CLAUDE.md
+.github/agents
+.github/copilot-instructions.md

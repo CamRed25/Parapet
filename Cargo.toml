@@ -1,0 +1,39 @@
+[workspace]
+members = [
+    "crates/frames_core",
+    "crates/frames_bar",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.75"
+authors = ["Frames Contributors"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/cam/frames"
+
+[workspace.lints.clippy]
+pedantic = "warn"
+correctness = "deny"
+
+[workspace.dependencies]
+# Pin minor versions for core dependencies — see CODING_STANDARDS.md §4.2
+serde = { version = "~1.0", features = ["derive"] }
+toml = "~0.8"
+thiserror = "~1.0"
+anyhow = "~1.0"
+tracing = "~0.1"
+tracing-subscriber = { version = "~0.3", features = ["env-filter"] }
+sysinfo = "~0.30"
+chrono = { version = "~0.4", features = ["serde"] }
+notify = "~6.1"
+gtk = { version = "~0.18", features = ["v3_24"] }
+gdk = "~0.18"
+glib = "~0.18"
+gio = "~0.18"
+fuzzy-matcher = "~0.3"
+libc = "~0.2"
+ctrlc = "~3.4"
+tempfile = "~3"
+ureq = { version = "~3.2", features = ["json"] }
+zbus = { version = "~5.1", features = ["blocking-api"] }

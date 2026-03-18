@@ -1,0 +1,76 @@
+<svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:var(--font-sans)">
+
+  <!-- Label -->
+  <text x="450" y="24" text-anchor="middle" font-size="12" fill="#888" letter-spacing="2" style="fill:rgb(136, 136, 136);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">bar style concepts</text>
+
+  <!-- ── OPTION 1: Pill islands ── -->
+  <text x="450" y="58" text-anchor="middle" font-size="11" fill="#aaa" letter-spacing="1" style="fill:rgb(170, 170, 170);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:middle;dominant-baseline:auto">A — floating pill islands</text>
+
+  <!-- wallpaper bg strip -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8924A"/>
+      <stop offset="100%" stop-color="#C46B2A"/>
+    </linearGradient>
+  </defs>
+  <rect x="20" y="65" width="860" height="38" rx="6" fill="url(#sky)" style="stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Left pill: stats -->
+  <rect x="28" y="70" width="160" height="28" rx="14" fill="rgba(15,12,10,0.55)" style="fill:rgba(15, 12, 10, 0.55);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="48" y="88" font-size="11" fill="#ffffff" font-weight="500" style="fill:rgb(255, 255, 255);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:500;text-anchor:start;dominant-baseline:auto">CPU 2%</text>
+  <text x="88" y="88" font-size="11" fill="rgba(255,255,255,0.4)" style="fill:rgba(255, 255, 255, 0.4);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">|</text>
+  <text x="96" y="88" font-size="11" fill="#ffffff" font-weight="500" style="fill:rgb(255, 255, 255);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:500;text-anchor:start;dominant-baseline:auto">MEM 47%</text>
+
+  <!-- Center pill: apps -->
+  <rect x="360" y="70" width="180" height="28" rx="14" fill="rgba(15,12,10,0.55)" style="fill:rgba(15, 12, 10, 0.55);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="450" y="88" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.7)" style="fill:rgba(255, 255, 255, 0.7);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:middle;dominant-baseline:auto">Apps</text>
+
+  <!-- Right pill: vol + time -->
+  <rect x="712" y="70" width="160" height="28" rx="14" fill="rgba(15,12,10,0.55)" style="fill:rgba(15, 12, 10, 0.55);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="730" y="88" font-size="11" fill="rgba(255,255,255,0.6)" style="fill:rgba(255, 255, 255, 0.6);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">VOL 100%</text>
+  <text x="810" y="88" font-size="11" fill="rgba(255,255,255,0.4)" style="fill:rgba(255, 255, 255, 0.4);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">|</text>
+  <text x="820" y="88" font-size="11" fill="#ffffff" font-weight="500" style="fill:rgb(255, 255, 255);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:500;text-anchor:start;dominant-baseline:auto">12:42</text>
+
+  <!-- ── OPTION 2: Single frosted bar ── -->
+  <text x="450" y="138" text-anchor="middle" font-size="11" fill="#aaa" letter-spacing="1" style="fill:rgb(170, 170, 170);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:middle;dominant-baseline:auto">B — single frosted bar</text>
+
+  <rect x="20" y="145" width="860" height="38" rx="6" fill="url(#sky)" style="stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <rect x="20" y="145" width="860" height="38" rx="6" fill="rgba(10,8,6,0.45)" style="fill:rgba(10, 8, 6, 0.45);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Left: stats with amber accent dots -->
+  <circle cx="36" cy="164" r="3" fill="#E8924A" style="fill:rgb(232, 146, 74);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="46" y="168" font-size="11" fill="rgba(255,255,255,0.85)" style="fill:rgba(255, 255, 255, 0.85);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">CPU 2%</text>
+  <text x="94" y="168" font-size="11" fill="rgba(255,255,255,0.3)" style="fill:rgba(255, 255, 255, 0.3);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">·</text>
+  <circle cx="104" cy="164" r="3" fill="#E8924A" style="fill:rgb(232, 146, 74);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="114" y="168" font-size="11" fill="rgba(255,255,255,0.85)" style="fill:rgba(255, 255, 255, 0.85);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">MEM 47%</text>
+
+  <!-- Center: Apps -->
+  <text x="450" y="168" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.6)" style="fill:rgba(255, 255, 255, 0.6);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:middle;dominant-baseline:auto">Apps</text>
+
+  <!-- Right: vol + clock -->
+  <text x="740" y="168" font-size="11" fill="rgba(255,255,255,0.6)" style="fill:rgba(255, 255, 255, 0.6);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">VOL 100%</text>
+  <text x="804" y="168" font-size="11" fill="rgba(255,255,255,0.3)" style="fill:rgba(255, 255, 255, 0.3);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">|</text>
+  <text x="816" y="168" font-size="11" fill="#ffffff" font-weight="500" style="fill:rgb(255, 255, 255);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:500;text-anchor:start;dominant-baseline:auto">12:42</text>
+
+  <!-- ── OPTION 3: Borderless transparent ── -->
+  <text x="450" y="218" text-anchor="middle" font-size="11" fill="#aaa" letter-spacing="1" style="fill:rgb(170, 170, 170);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:middle;dominant-baseline:auto">C — borderless, text only</text>
+
+  <rect x="20" y="225" width="860" height="38" rx="6" fill="url(#sky)" style="stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Left: stats plain -->
+  <text x="32" y="248" font-size="11" fill="rgba(255,255,255,0.55)" style="fill:rgba(255, 255, 255, 0.55);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">CPU</text>
+  <text x="58" y="248" font-size="12" fill="#ffffff" font-weight="500" style="fill:rgb(255, 255, 255);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">2%</text>
+  <text x="86" y="248" font-size="11" fill="rgba(255,255,255,0.55)" style="fill:rgba(255, 255, 255, 0.55);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">MEM</text>
+  <text x="118" y="248" font-size="12" fill="#ffffff" font-weight="500" style="fill:rgb(255, 255, 255);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">47%</text>
+
+  <!-- Center -->
+  <text x="450" y="248" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.5)" style="fill:rgba(255, 255, 255, 0.5);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:middle;dominant-baseline:auto">Apps</text>
+
+  <!-- Right: amber clock -->
+  <text x="740" y="248" font-size="11" fill="rgba(255,255,255,0.5)" style="fill:rgba(255, 255, 255, 0.5);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">VOL 100%</text>
+  <text x="810" y="248" font-size="11" fill="rgba(255,255,255,0.3)" style="fill:rgba(255, 255, 255, 0.3);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:start;dominant-baseline:auto">|</text>
+  <text x="822" y="248" font-size="12" fill="#E8924A" font-weight="500" style="fill:rgb(232, 146, 74);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">12:42</text>
+
+  <!-- Labels -->
+  <text x="450" y="305" text-anchor="middle" font-size="11" fill="rgba(128,128,128,0.6)" style="fill:rgba(128, 128, 128, 0.6);stroke:none;color:rgb(251, 251, 254);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, sans-serif;font-size:11px;font-weight:400;text-anchor:middle;dominant-baseline:auto">all three sit on the same amber sky as your wallpaper</text>
+</svg>
