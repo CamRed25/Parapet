@@ -65,13 +65,7 @@ fn build_search_data(app: &gio::AppInfo) -> AppSearchData {
             .unwrap_or_default(),
         keywords: dinfo
             .as_ref()
-            .map(|d| {
-                d.keywords()
-                    .iter()
-                    .map(ToString::to_string)
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            })
+            .map(|d| d.keywords().iter().map(ToString::to_string).collect::<Vec<_>>().join(" "))
             .unwrap_or_default(),
         description: app.description().map(|s| s.to_string()).unwrap_or_default(),
     }
@@ -89,17 +83,11 @@ fn score_app(
     query: &str,
 ) -> Option<(i64, Vec<usize>)> {
     // Score the name field to get both a score and the usable indices.
-    let name_result = matcher
-        .fuzzy_indices(&data.name, query)
-        .map(|(s, idx)| (s * 3, idx));
+    let name_result = matcher.fuzzy_indices(&data.name, query).map(|(s, idx)| (s * 3, idx));
 
     // Score the other fields for the weight bonus only; indices are discarded.
-    let generic_score = matcher
-        .fuzzy_match(&data.generic_name, query)
-        .map_or(i64::MIN, |s| s * 2);
-    let keywords_score = matcher
-        .fuzzy_match(&data.keywords, query)
-        .map_or(i64::MIN, |s| s * 2);
+    let generic_score = matcher.fuzzy_match(&data.generic_name, query).map_or(i64::MIN, |s| s * 2);
+    let keywords_score = matcher.fuzzy_match(&data.keywords, query).map_or(i64::MIN, |s| s * 2);
     let desc_score = matcher.fuzzy_match(&data.description, query).unwrap_or(i64::MIN);
 
     // Best score across all fields.
@@ -196,6 +184,7 @@ impl LauncherWidget {
             max_results,
             popup_width,
             popup_min_height,
+            u64::from(config.hover_delay_ms.unwrap_or(150)),
         );
 
         // ── AppInfoMonitor: live app-list refresh with 500 ms debounce ────
@@ -214,18 +203,20 @@ impl LauncherWidget {
                 }
                 let apps_inner = Rc::clone(&apps_rc);
                 let corpus_inner = Rc::clone(&corpus_rc);
-                let new_id =
-                    glib::timeout_add_local_once(Duration::from_millis(500), move || {
-                        let (new_apps, new_corpus) = load_apps();
-                        *apps_inner.borrow_mut() = new_apps;
-                        *corpus_inner.borrow_mut() = new_corpus;
-                        tracing::debug!("launcher: app list refreshed via AppInfoMonitor");
-                    });
+                let new_id = glib::timeout_add_local_once(Duration::from_millis(500), move || {
+                    let (new_apps, new_corpus) = load_apps();
+                    *apps_inner.borrow_mut() = new_apps;
+                    *corpus_inner.borrow_mut() = new_corpus;
+                    tracing::debug!("launcher: app list refreshed via AppInfoMonitor");
+                });
                 *pending_rc.borrow_mut() = Some(new_id);
             });
         }
 
-        Ok(Self { button, _app_monitor: monitor })
+        Ok(Self {
+            button,
+            _app_monitor: monitor,
+        })
     }
 
     /// Return a reference to the root GTK widget (the `gtk::Button`) for bar placement.
@@ -243,6 +234,19 @@ impl LauncherWidget {
 /// and list signals are further delegated to [`wire_window_keyboard`] and
 /// [`wire_list_signals`].
 #[allow(clippy::too_many_arguments)] // all args are required; no sensible grouping
+#[allow(clippy::too_many_lines)] // all signal connections share close_timer Rc; subdividing would require passing it as a parameter
+/// Wire all dropdown open/close behaviour onto `button`.
+///
+/// Creates the standalone `gtk::Window` dropdown, wires keyboard navigation,
+/// fuzzy-search filtering, click-toggle, hover-enter/leave, and app-launch
+/// signals. All signals are self-contained in closures — `LauncherWidget` does
+/// not need to retain any state for these signals after this call.
+///
+/// # Parameters
+///
+/// - `hover_delay_ms`: milliseconds to wait after cursor enters `button` before
+///   opening the dropdown. `0` opens immediately. The leave-notify handler
+///   cancels the pending timer, so a drive-by hover never opens the dropdown.
 fn wire_dropdown(
     button: &gtk::Button,
     apps: &Rc<RefCell<Vec<gio::AppInfo>>>,
@@ -251,6 +255,7 @@ fn wire_dropdown(
     max_results: usize,
     popup_width: i32,
     popup_min_height: i32,
+    hover_delay_ms: u64,
 ) {
     // ── Dropdown window ───────────────────────────────────────────────────
     // Standalone window, not gtk::Popover. On X11/GTK3 a Popover renders
@@ -261,10 +266,11 @@ fn wire_dropdown(
     dropdown.set_skip_taskbar_hint(true);
     dropdown.set_skip_pager_hint(true);
     dropdown.set_type_hint(gdk::WindowTypeHint::PopupMenu);
+    dropdown.set_accept_focus(true);
     dropdown.set_default_size(popup_width, -1);
     dropdown.style_context().add_class("launcher-popover");
 
-    // ── Inner layout ──────────────────────────────────────────────────────
+    // ── Inner layout ──────────────────────────────────────────────────────────────
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 4);
     let search = gtk::SearchEntry::new();
     search.style_context().add_class("launcher-search");
@@ -275,7 +281,7 @@ fn wire_dropdown(
 
     let list = gtk::ListBox::new();
     list.style_context().add_class("launcher-list");
-    list.set_activate_on_single_click(false);
+    list.set_activate_on_single_click(true);
 
     scrolled.add(&list);
     vbox.pack_start(&search, false, false, 0);
@@ -283,36 +289,177 @@ fn wire_dropdown(
     dropdown.add(&vbox);
 
     wire_window_keyboard(&dropdown, &search, &list);
-    wire_list_signals(&search, &list, &dropdown, apps, corpus, pinned, max_results);
 
-    // ── Signal: button clicked → toggle dropdown ──────────────────────────
-    let apps = Rc::clone(apps);
-    let corpus = Rc::clone(corpus);
-    let pinned = Rc::clone(pinned);
-    button.connect_clicked(move |btn| {
-        if dropdown.is_visible() {
-            dropdown.hide();
-            return;
-        }
-        rebuild_list(&list, &apps.borrow(), &corpus.borrow(), "", max_results, &pinned);
-        search.set_text("");
-        if let Some(gdk_win) = btn.window() {
-            let (wx, wy, _) = gdk_win.origin();
-            let alloc = btn.allocation();
-            dropdown.move_(wx + alloc.x(), wy + alloc.y() + alloc.height());
-        }
-        dropdown.show_all();
-        search.grab_focus();
-    });
+    // Fuzzy matcher created once and shared across all filter operations.
+    let matcher = Rc::new(SkimMatcherV2::default());
+    // Shared timer used to defer dropdown close on mouse-leave so the user
+    // can move from the button into the dropdown without it disappearing.
+    let close_timer: Rc<RefCell<Option<glib::SourceId>>> = Rc::new(RefCell::new(None));
+    // Shared timer used to defer dropdown open on mouse-enter. The leave-notify
+    // handler cancels this timer, preventing accidental opens on drive-by hover.
+    let open_timer: Rc<RefCell<Option<glib::SourceId>>> = Rc::new(RefCell::new(None));
+
+    // ── Dropdown hide: remove open-state class from button ───────────────────
+    // All close paths (click-toggle, Escape, hover-out, programmatic hide) call
+    // dropdown.hide(), which fires this signal exactly once per close.
+    {
+        let button = button.clone();
+        dropdown.connect_hide(move |_| {
+            button.style_context().remove_class("launcher-open");
+        });
+    }
+
+    wire_list_signals(&search, &list, &dropdown, apps, corpus, pinned, max_results, &matcher);
+
+    // ── Click: toggle dropdown, grab focus for immediate typing ─────────────
+    {
+        let apps = Rc::clone(apps);
+        let corpus = Rc::clone(corpus);
+        let pinned = Rc::clone(pinned);
+        let close_timer = Rc::clone(&close_timer);
+        let matcher = Rc::clone(&matcher);
+        let dropdown = dropdown.clone();
+        let list = list.clone();
+        let search = search.clone();
+        button.connect_clicked(move |btn| {
+            cancel_close_timer(&close_timer);
+            if dropdown.is_visible() {
+                dropdown.hide();
+                return;
+            }
+            open_dropdown(
+                btn,
+                &dropdown,
+                &list,
+                &search,
+                &apps,
+                &corpus,
+                &pinned,
+                max_results,
+                &matcher,
+                true,
+            );
+        });
+    }
+
+    // ── Hover enter button: open dropdown after delay (no focus steal) ────────
+    {
+        let apps = Rc::clone(apps);
+        let corpus = Rc::clone(corpus);
+        let pinned = Rc::clone(pinned);
+        let close_timer = Rc::clone(&close_timer);
+        let open_timer = Rc::clone(&open_timer);
+        let matcher = Rc::clone(&matcher);
+        let dropdown = dropdown.clone();
+        let list = list.clone();
+        let search = search.clone();
+        button.connect_enter_notify_event(move |btn, ev| {
+            // Inferior = crossing into a child widget; ignore to avoid flicker.
+            if ev.detail() == gdk::NotifyType::Inferior {
+                return glib::Propagation::Proceed;
+            }
+            cancel_close_timer(&close_timer);
+            cancel_open_timer(&open_timer);
+            if !dropdown.is_visible() {
+                if hover_delay_ms == 0 {
+                    // Zero delay: open immediately (same as previous behaviour).
+                    open_dropdown(
+                        btn,
+                        &dropdown,
+                        &list,
+                        &search,
+                        &apps,
+                        &corpus,
+                        &pinned,
+                        max_results,
+                        &matcher,
+                        false,
+                    );
+                } else {
+                    // Start a pending open timer. If the cursor leaves before it
+                    // fires, connect_leave_notify_event cancels it via open_timer.
+                    let btn = btn.clone();
+                    let apps = Rc::clone(&apps);
+                    let corpus = Rc::clone(&corpus);
+                    let pinned = Rc::clone(&pinned);
+                    let matcher = Rc::clone(&matcher);
+                    let dropdown = dropdown.clone();
+                    let list = list.clone();
+                    let search = search.clone();
+                    let open_timer_clone = Rc::clone(&open_timer);
+                    let id = glib::timeout_add_local_once(
+                        Duration::from_millis(hover_delay_ms),
+                        move || {
+                            open_dropdown(
+                                &btn,
+                                &dropdown,
+                                &list,
+                                &search,
+                                &apps,
+                                &corpus,
+                                &pinned,
+                                max_results,
+                                &matcher,
+                                false,
+                            );
+                            *open_timer_clone.borrow_mut() = None;
+                        },
+                    );
+                    *open_timer.borrow_mut() = Some(id);
+                }
+            }
+            glib::Propagation::Proceed
+        });
+    }
+
+    // ── Hover leave button: cancel pending open, schedule close ─────────────
+    {
+        let close_timer = Rc::clone(&close_timer);
+        let open_timer = Rc::clone(&open_timer);
+        let dropdown = dropdown.clone();
+        button.connect_leave_notify_event(move |_, ev| {
+            if ev.detail() == gdk::NotifyType::Inferior {
+                return glib::Propagation::Proceed;
+            }
+            // Cancel any pending open timer first — prevents the dropdown from
+            // appearing if the cursor left before the hover delay expired.
+            cancel_open_timer(&open_timer);
+            schedule_close_dropdown(&dropdown, &close_timer);
+            glib::Propagation::Proceed
+        });
+    }
+
+    // ── Hover enter dropdown: cancel pending close ───────────────────────
+    {
+        let close_timer = Rc::clone(&close_timer);
+        dropdown.connect_enter_notify_event(move |_, ev| {
+            if ev.detail() == gdk::NotifyType::Inferior {
+                return glib::Propagation::Proceed;
+            }
+            cancel_close_timer(&close_timer);
+            glib::Propagation::Proceed
+        });
+    }
+
+    // ── Hover leave dropdown: schedule close ─────────────────────────────
+    {
+        let close_timer = Rc::clone(&close_timer);
+        // dropdown_c is the clone moved into the closure; outer `dropdown`
+        // is borrowed for the connect call only — two separate borrows.
+        let dropdown_c = dropdown.clone();
+        dropdown.connect_leave_notify_event(move |_, ev| {
+            if ev.detail() == gdk::NotifyType::Inferior {
+                return glib::Propagation::Proceed;
+            }
+            schedule_close_dropdown(&dropdown_c, &close_timer);
+            glib::Propagation::Proceed
+        });
+    }
 }
 
 /// Wire Escape/delete-event on the dropdown window plus Down/Up keyboard
 /// navigation between `search` and `list`.
-fn wire_window_keyboard(
-    dropdown: &gtk::Window,
-    search: &gtk::SearchEntry,
-    list: &gtk::ListBox,
-) {
+fn wire_window_keyboard(dropdown: &gtk::Window, search: &gtk::SearchEntry, list: &gtk::ListBox) {
     dropdown.connect_delete_event(|win, _| {
         win.hide();
         glib::Propagation::Stop
@@ -368,6 +515,7 @@ fn wire_list_signals(
     corpus: &Rc<RefCell<Vec<AppSearchData>>>,
     pinned: &Rc<Vec<String>>,
     max_results: usize,
+    matcher: &Rc<SkimMatcherV2>,
 ) {
     // Search text changed → filter list.
     {
@@ -375,9 +523,18 @@ fn wire_list_signals(
         let apps = Rc::clone(apps);
         let corpus = Rc::clone(corpus);
         let pinned = Rc::clone(pinned);
+        let matcher = Rc::clone(matcher);
         search.connect_changed(move |entry| {
             let query = entry.text().to_string();
-            rebuild_list(&list, &apps.borrow(), &corpus.borrow(), &query, max_results, &pinned);
+            rebuild_list(
+                &list,
+                &apps.borrow(),
+                &corpus.borrow(),
+                &query,
+                max_results,
+                &pinned,
+                &matcher,
+            );
         });
     }
 
@@ -438,13 +595,12 @@ fn rebuild_list(
     query: &str,
     max_results: usize,
     pinned: &[String],
+    matcher: &SkimMatcherV2,
 ) {
     // Remove all existing rows.
     for child in list.children() {
         list.remove(&child);
     }
-
-    let matcher = SkimMatcherV2::default();
 
     if query.is_empty() {
         // Pinned apps first (config order), then the rest.
@@ -458,7 +614,7 @@ fn rebuild_list(
             .iter()
             .zip(corpus.iter())
             .filter_map(|(app, data)| {
-                score_app(&matcher, data, query).map(|(score, idx)| (score, app, idx))
+                score_app(matcher, data, query).map(|(score, idx)| (score, app, idx))
             })
             .collect();
 
@@ -565,7 +721,7 @@ fn partition_apps<'a>(
 ) -> (Vec<&'a gio::AppInfo>, Vec<&'a gio::AppInfo>) {
     let mut pinned_out: Vec<&gio::AppInfo> = Vec::with_capacity(pinned.len());
     for stem in pinned {
-            if let Some(a) = apps.iter().find(|a| desktop_id_stem(a) == *stem) {
+        if let Some(a) = apps.iter().find(|a| desktop_id_stem(a) == *stem) {
             pinned_out.push(a);
         }
     }
@@ -588,7 +744,95 @@ fn desktop_id_stem(app: &gio::AppInfo) -> String {
         })
         .unwrap_or_default()
 }
+// ── Hover / open helpers ──────────────────────────────────────────────────────────────
 
+/// Open the launcher dropdown below `btn`.
+///
+/// Rebuilds the result list with an empty query (pinned apps first, then all),
+/// clears the search entry, positions the window below the button, and shows
+/// it. When `focused` is `true`, the search entry is focused on the next
+/// main-loop iteration so the user can type immediately after clicking.
+#[allow(clippy::too_many_arguments)] // all args are required; no sensible grouping
+fn open_dropdown(
+    btn: &gtk::Button,
+    dropdown: &gtk::Window,
+    list: &gtk::ListBox,
+    search: &gtk::SearchEntry,
+    apps: &Rc<RefCell<Vec<gio::AppInfo>>>,
+    corpus: &Rc<RefCell<Vec<AppSearchData>>>,
+    pinned: &Rc<Vec<String>>,
+    max_results: usize,
+    matcher: &Rc<SkimMatcherV2>,
+    focused: bool,
+) {
+    btn.style_context().add_class("launcher-open");
+    rebuild_list(list, &apps.borrow(), &corpus.borrow(), "", max_results, pinned, matcher);
+    search.set_text("");
+    position_dropdown_below(btn, dropdown);
+    dropdown.show_all();
+    if focused {
+        let search_clone = search.clone();
+        // Defer grab_focus to the next main-loop tick — the window must be
+        // fully mapped before the focus request is honoured by the compositor.
+        glib::timeout_add_local_once(Duration::from_millis(10), move || {
+            search_clone.grab_focus();
+        });
+    }
+}
+
+/// Position `dropdown` directly below `btn` using accurate screen coordinates.
+///
+/// Uses `translate_coordinates` to convert the button's widget-local origin
+/// into the toplevel window's coordinate space, then adds the window's screen
+/// origin. This correctly handles any depth of nested no-window containers
+/// (e.g. `GtkBox` sections inside the bar).
+fn position_dropdown_below(btn: &gtk::Button, dropdown: &gtk::Window) {
+    let alloc = btn.allocation();
+    if let Some(toplevel) = btn.toplevel() {
+        if let Some(gdkwin) = toplevel.window() {
+            if let Some((bx, by)) = btn.translate_coordinates(&toplevel, 0, 0) {
+                let (win_x, win_y, _) = gdkwin.origin();
+                dropdown.move_(win_x + bx, win_y + by + alloc.height());
+                return;
+            }
+        }
+    }
+    // Fallback when the toplevel or its GdkWindow is unavailable.
+    dropdown.move_(alloc.x(), alloc.y() + alloc.height());
+}
+
+/// Schedule the dropdown to close after 250 ms.
+///
+/// Any existing pending timer is cancelled before starting a new one so
+/// repeated leave events do not stack. Call [`cancel_close_timer`] to abort.
+fn schedule_close_dropdown(dropdown: &gtk::Window, timer: &Rc<RefCell<Option<glib::SourceId>>>) {
+    cancel_close_timer(timer);
+    let dropdown = dropdown.clone();
+    let timer_clone = Rc::clone(timer);
+    let id = glib::timeout_add_local_once(Duration::from_millis(250), move || {
+        dropdown.hide();
+        *timer_clone.borrow_mut() = None;
+    });
+    *timer.borrow_mut() = Some(id);
+}
+
+/// Cancel a pending close timer started by [`schedule_close_dropdown`].
+fn cancel_close_timer(timer: &Rc<RefCell<Option<glib::SourceId>>>) {
+    if let Some(id) = timer.borrow_mut().take() {
+        id.remove();
+    }
+}
+
+/// Cancel a pending hover-open timer started by the `connect_enter_notify_event` handler.
+///
+/// Prevents the dropdown from opening if the cursor leaves the button before
+/// the `hover_delay_ms` delay expires (accidental drive-by hover). Safe to call
+/// when no timer is pending — the `take()` is a no-op in that case.
+fn cancel_open_timer(timer: &Rc<RefCell<Option<glib::SourceId>>>) {
+    if let Some(id) = timer.borrow_mut().take() {
+        id.remove();
+    }
+}
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -601,10 +845,7 @@ mod tests {
         assert_eq!(stem, "org.mozilla.firefox");
 
         let no_suffix = "firefox-nightly";
-        assert_eq!(
-            no_suffix.strip_suffix(".desktop").unwrap_or(no_suffix),
-            "firefox-nightly"
-        );
+        assert_eq!(no_suffix.strip_suffix(".desktop").unwrap_or(no_suffix), "firefox-nightly");
     }
 
     /// Verify `highlighted_label` produces a label whose visible text equals the

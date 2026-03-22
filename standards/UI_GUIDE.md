@@ -43,7 +43,7 @@ All data computation lives in `parapet_core`. Renderers in `parapet_bar` display
 
 ```rust
 // bar.rs
-let window = gtk::Window::new(gtk::WindowType::Popup);
+let window = gtk::Window::new(gtk::WindowType::Toplevel);
 window.set_title("parapet");
 window.set_decorated(false);
 window.set_resizable(false);
@@ -52,7 +52,7 @@ window.set_skip_pager_hint(true);
 window.set_type_hint(gdk::WindowTypeHint::Dock);
 ```
 
-`gtk::WindowType::Popup` combined with `gdk::WindowTypeHint::Dock` tells the window manager this is a panel, not a normal application window.
+`gtk::WindowType::Toplevel` combined with `gdk::WindowTypeHint::Dock` tells the window manager this is a panel. Using `Toplevel` (WM-managed) rather than `Popup` (override-redirect) is intentional — it allows the WM to correctly associate the EWMH strut with the bar window. See ADR-004 in `DOCS/DECISIONS.md`.
 
 ### 3.2 Positioning
 
@@ -278,6 +278,7 @@ All bar and widget elements have stable CSS class names. These are the CSS API s
 | Workspace button (inactive) | `.workspace` |
 | Workspace button (active) | `.workspace.active` |
 | Launcher button | `.widget-launcher` |
+| Launcher button (dropdown open) | `.widget-launcher.launcher-open` |
 | Launcher popover | `.launcher-popover` |
 | Launcher search entry | `.launcher-search` |
 | Launcher result list | `.launcher-list` |

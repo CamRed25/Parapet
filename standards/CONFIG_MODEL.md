@@ -328,6 +328,29 @@ Display formats:
 - `"percent"`: `"DISK 5%"`
 - `"free"`: `"DISK free 886.3 GiB"`
 
+### 4.14 Launcher Widget Fields
+
+```toml
+[[widgets]]
+type = "launcher"
+position = "left"
+button_label = "Apps"    # text shown on the bar button
+max_results = 10         # maximum rows in the dropdown list
+popup_width = 280        # dropdown window width in pixels
+popup_min_height = 200   # minimum dropdown list height in pixels
+hover_delay_ms = 150     # ms before dropdown opens on hover; 0 = immediate
+pinned = ["firefox", "kitty", "code"]
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `button_label` | string | `"Apps"` | Text shown on the launcher button in the bar |
+| `max_results` | integer | `10` | Maximum number of application rows shown in the dropdown |
+| `popup_width` | integer (px) | `280` | Width of the dropdown popup window in pixels |
+| `popup_min_height` | integer (px) | `200` | Minimum height of the scrollable application list in pixels |
+| `hover_delay_ms` | integer (ms) | `150` | Milliseconds to wait after the cursor enters the launcher button before the dropdown opens. Set to `0` to open immediately |
+| `pinned` | array of strings | `[]` | Desktop ID stems (without `.desktop` suffix) shown at the top of the list regardless of search query. E.g. `["firefox", "kitty"]` |
+
 ---
 
 ## 5. Config Validation Rules

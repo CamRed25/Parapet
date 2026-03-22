@@ -104,9 +104,14 @@ ureq = { version = "~3.2", features = ["json"] }
 zbus = { version = "~5.1", features = ["blocking-api"] }
 schemars = "~0.8"
 serde_json = "~1.0"
-gtk = { version = "~0.18", features = ["v3_22"] }
+gtk = { version = "~0.18", features = ["v3_24"] }
 gdk = "~0.18"
 glib = "~0.18"
+gio = "~0.18"
+fuzzy-matcher = "~0.3"
+libc = "~0.2"
+ctrlc = "~3.4"
+tempfile = "~3"
 ```
 
 ### 2.2 Crate Cargo.toml Templates
@@ -133,9 +138,13 @@ tracing.workspace = true
 sysinfo.workspace = true
 chrono.workspace = true
 notify.workspace = true
+ureq.workspace = true
+zbus.workspace = true
+schemars.workspace = true
+serde_json.workspace = true
 
 [dev-dependencies]
-tempfile = "3"
+tempfile.workspace = true
 ```
 
 ```toml

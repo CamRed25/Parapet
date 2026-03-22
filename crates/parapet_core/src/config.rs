@@ -623,6 +623,14 @@ pub struct LauncherConfig {
     /// Default: empty.
     #[serde(default)]
     pub pinned: Vec<String>,
+    /// Milliseconds to wait after the cursor enters the launcher button before
+    /// the dropdown opens. Set to `0` to open immediately (previous behaviour).
+    /// Default: `150`.
+    ///
+    /// A short delay prevents accidental opens when the cursor passes over the
+    /// button while moving to another part of the screen.
+    #[serde(default)]
+    pub hover_delay_ms: Option<u32>,
 }
 
 /// Separator widget configuration.
@@ -867,6 +875,74 @@ crit_threshold = 95.0
             assert_eq!(launcher.max_results, Some(15));
         } else {
             panic!("expected WidgetKind::Launcher");
+        }
+    }
+
+    #[test]
+    fn launcher_hover_delay_defaults_to_none() {
+        // Absent field → None; caller applies the 150 ms default.
+        let toml = r#"
+            [[widgets]]
+            type = "launcher"
+            position = "left"
+        "#;
+        let config: ParapetConfig = toml::from_str(toml).expect("valid toml");
+        if let WidgetKind::Launcher(ref launcher) = config.widgets[0].kind {
+            assert_eq!(launcher.hover_delay_ms, None);
+        } else {
+            panic!("expected WidgetKind::Launcher");
+        }
+    }
+
+    #[test]
+    fn launcher_hover_delay_explicit_zero() {
+        // hover_delay_ms = 0 → Some(0); caller uses this to open immediately.
+        let toml = r#"
+            [[widgets]]
+            type = "launcher"
+            position = "left"
+            hover_delay_ms = 0
+        "#;
+        let config: ParapetConfig = toml::from_str(toml).expect("valid toml");
+        if let WidgetKind::Launcher(ref launcher) = config.widgets[0].kind {
+            assert_eq!(launcher.hover_delay_ms, Some(0));
+        } else {
+            panic!("expected WidgetKind::Launcher");
+        }
+    }
+
+    #[test]
+    fn launcher_hover_delay_explicit_value() {
+        let toml = r#"
+            [[widgets]]
+            type = "launcher"
+            position = "left"
+            hover_delay_ms = 250
+        "#;
+        let config: ParapetConfig = toml::from_str(toml).expect("valid toml");
+        if let WidgetKind::Launcher(ref launcher) = config.widgets[0].kind {
+            assert_eq!(launcher.hover_delay_ms, Some(250));
+        } else {
+            panic!("expected WidgetKind::Launcher");
+        }
+    }
+
+    #[test]
+    fn launcher_hover_delay_round_trips() {
+        // Serialize LauncherConfig with hover_delay_ms = Some(100), then deserialize.
+        let toml = r#"
+            [[widgets]]
+            type = "launcher"
+            position = "left"
+            hover_delay_ms = 100
+        "#;
+        let config: ParapetConfig = toml::from_str(toml).expect("valid toml");
+        let serialized = toml::to_string(&config).expect("serialize");
+        let config2: ParapetConfig = toml::from_str(&serialized).expect("re-parse");
+        if let WidgetKind::Launcher(ref launcher) = config2.widgets[0].kind {
+            assert_eq!(launcher.hover_delay_ms, Some(100));
+        } else {
+            panic!("expected WidgetKind::Launcher after round-trip");
         }
     }
 

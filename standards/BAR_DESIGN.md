@@ -26,7 +26,7 @@ The bar window is created with these properties set before it is shown:
 
 | Property | Value | Reason |
 |----------|-------|--------|
-| `WindowType` | `Popup` | Bypasses normal WM decoration and placement |
+| `WindowType` | `Toplevel` | WM-managed window; enables correct EWMH strut association |
 | `TypeHint` | `Dock` | X11: `_NET_WM_WINDOW_TYPE_DOCK` |
 | `decorated` | `false` | No title bar or borders |
 | `resizable` | `false` | Fixed to screen width |
@@ -172,6 +172,17 @@ GtkEventBox (.widget .widget-{type})
 ```
 
 The event box allows padding and background via CSS and captures click events for workspace buttons.
+
+### 5.4 Event-Driven Widget Renderers
+
+A bar-side renderer may register a `gdk_window_add_filter` GDK event filter instead of, or in addition to, a polling timer. Rules:
+
+- **(a)** Implemented only in `parapet_bar` — never in `parapet_core`.
+- **(b)** Every `unsafe` block carries a `// SAFETY:` justification per CODING_STANDARDS §6.1.
+- **(c)** `gdk_window_remove_filter` must be called before the widget is dropped (in `impl Drop`).
+- **(d)** State passed between the callback and the main thread via `Arc<AtomicBool>` or `std::sync::mpsc::Sender<()>` — not `Rc`, globals, or thread-local storage.
+- **(e)** Filter callbacks must return `GDK_FILTER_CONTINUE` (value `0`) unless intentionally consuming the event.
+- **(f)** Callbacks relying on platform-specific struct layouts (e.g., `XPropertyEvent` byte offsets) must be guarded with `#[cfg(target_arch = "x86_64")]`.
 
 ---
 

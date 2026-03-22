@@ -13,11 +13,11 @@ date +%Y-%m-%d
 ```
 
 Set REPORT_DATE to that value. The output file will be:
-`/home/cam/Documents/Status/audits/REPORT_DATE_audit.md`
+`/home/cam/Documents/Desktop/Status/DOCS/audits/REPORT_DATE_audit.md`
 
 Create the `audits/` directory if it does not exist:
 ```bash
-mkdir -p /home/cam/Documents/Status/audits
+mkdir -p /home/cam/Documents/Desktop/Status/DOCS/audits
 ```
 
 ---
@@ -29,47 +29,47 @@ mismatch between what the standard documents and what actually exists.
 
 ### 1.1 ARCHITECTURE.md Freshness
 
-Read `/home/cam/Documents/Status/standards/ARCHITECTURE.md`.
+Read `/home/cam/Documents/Desktop/Status/standards/ARCHITECTURE.md`.
 
 **Workspace member list (§2):**
 ```bash
-grep -A 10 '^\[workspace\]' /home/cam/Documents/Status/Cargo.toml
+grep -A 10 '^\[workspace\]' /home/cam/Documents/Desktop/Status/Cargo.toml
 ```
 Compare the actual `members = [...]` list against §2's crate list.
 
 **parapet_core module tree (§4):**
 ```bash
-ls /home/cam/Documents/Status/crates/parapet_core/src/
-ls /home/cam/Documents/Status/crates/parapet_core/src/widgets/
+ls /home/cam/Documents/Desktop/Status/crates/parapet_core/src/
+ls /home/cam/Documents/Desktop/Status/crates/parapet_core/src/widgets/
 ```
 Compare against §4's module table. Note any files present but undocumented, or documented but absent.
 
 **parapet_bar module tree (§5):**
 ```bash
-ls /home/cam/Documents/Status/crates/parapet_bar/src/
-ls /home/cam/Documents/Status/crates/parapet_bar/src/widgets/
+ls /home/cam/Documents/Desktop/Status/crates/parapet_bar/src/
+ls /home/cam/Documents/Desktop/Status/crates/parapet_bar/src/widgets/
 ```
 Compare against §5's module table.
 
 **Dependency graph (§3):**
 ```bash
-grep -A 40 '^\[workspace.dependencies\]' /home/cam/Documents/Status/Cargo.toml
+grep -A 40 '^\[workspace.dependencies\]' /home/cam/Documents/Desktop/Status/Cargo.toml
 ```
 Compare against §3's documented dependencies. Note any in `Cargo.toml` absent from the standard.
 
 ### 1.2 CONFIG_MODEL.md Freshness
 
-Read `/home/cam/Documents/Status/standards/CONFIG_MODEL.md`.
+Read `/home/cam/Documents/Desktop/Status/standards/CONFIG_MODEL.md`.
 
 Compare documented `ParapetConfig`, `BarConfig`, and `WidgetConfig` struct fields against the actual Rust source in `crates/parapet_core/src/config.rs`. Note missing or added fields.
 
 ### 1.3 BUILD_GUIDE.md Freshness
 
-Read `/home/cam/Documents/Status/standards/BUILD_GUIDE.md`.
+Read `/home/cam/Documents/Desktop/Status/standards/BUILD_GUIDE.md`.
 
 **Workspace members in §2.1:**
 ```bash
-grep -A 10 '^\[workspace\]' /home/cam/Documents/Status/Cargo.toml
+grep -A 10 '^\[workspace\]' /home/cam/Documents/Desktop/Status/Cargo.toml
 ```
 Check whether the template in §2.1 lists all actual workspace members.
 
@@ -78,38 +78,38 @@ Compare the `[workspace.dependencies]` example in §2.1 against the actual Cargo
 
 ### 1.4 TESTING_GUIDE.md Freshness
 
-Read `/home/cam/Documents/Status/standards/TESTING_GUIDE.md`.
+Read `/home/cam/Documents/Desktop/Status/standards/TESTING_GUIDE.md`.
 
 **Integration test files:**
 ```bash
-ls /home/cam/Documents/Status/crates/parapet_core/tests/ 2>/dev/null || echo "no integration tests yet"
+ls /home/cam/Documents/Desktop/Status/crates/parapet_core/tests/ 2>/dev/null || echo "no integration tests yet"
 ```
 Compare actual test files against §2.2.
 
 ### 1.5 RULE_OF_LAW.md Freshness
 
-Read `/home/cam/Documents/Status/standards/RULE_OF_LAW.md`.
+Read `/home/cam/Documents/Desktop/Status/standards/RULE_OF_LAW.md`.
 
 **Governance files exist:**
 ```bash
-ls /home/cam/Documents/Status/doa/ 2>/dev/null || echo "MISSING: doa/"
-test -f /home/cam/Documents/Status/DOCS/cleanup.md && echo "cleanup.md: EXISTS" || echo "MISSING: cleanup.md"
-test -f /home/cam/Documents/Status/DOCS/futures.md && echo "futures.md: EXISTS" || echo "MISSING: futures.md"
-test -f /home/cam/Documents/Status/DOCS/conflict.md && echo "conflict.md: EXISTS" || echo "MISSING: conflict.md"
+ls /home/cam/Documents/Desktop/Status/doa/ 2>/dev/null || echo "MISSING: doa/"
+test -f /home/cam/Documents/Desktop/Status/DOCS/cleanup.md && echo "cleanup.md: EXISTS" || echo "MISSING: cleanup.md"
+test -f /home/cam/Documents/Desktop/Status/DOCS/futures.md && echo "futures.md: EXISTS" || echo "MISSING: futures.md"
+test -f /home/cam/Documents/Desktop/Status/DOCS/conflict.md && echo "conflict.md: EXISTS" || echo "MISSING: conflict.md"
 ```
 
 ### 1.6 CODING_STANDARDS.md Freshness
 
-Read `/home/cam/Documents/Status/standards/CODING_STANDARDS.md`.
+Read `/home/cam/Documents/Desktop/Status/standards/CODING_STANDARDS.md`.
 
 **rustfmt.toml (§1.3):**
 ```bash
-cat /home/cam/Documents/Status/rustfmt.toml 2>/dev/null || echo "MISSING: rustfmt.toml"
+cat /home/cam/Documents/Desktop/Status/rustfmt.toml 2>/dev/null || echo "MISSING: rustfmt.toml"
 ```
 
 **Workspace lints (§1.4):**
 ```bash
-grep -A 5 '\[workspace.lints' /home/cam/Documents/Status/Cargo.toml
+grep -A 5 '\[workspace.lints' /home/cam/Documents/Desktop/Status/Cargo.toml
 ```
 
 ---
@@ -188,11 +188,11 @@ For each entry in `cleanup.md`, verify the listed DOA path exists.
 ## Phase 3 — Write the Audit Report
 
 ```bash
-mkdir -p /home/cam/Documents/Status/audits
+mkdir -p /home/cam/Documents/Desktop/Status/DOCS/audits
 ```
 
 Write the complete report to:
-`/home/cam/Documents/Status/audits/YYYY-MM-DD_audit.md`
+`/home/cam/Documents/Desktop/Status/DOCS/audits/YYYY-MM-DD_audit.md`
 
 Use this structure:
 
@@ -200,7 +200,7 @@ Use this structure:
 # Audit Report — YYYY-MM-DD
 
 > Generated by `/audit`. Covers standards freshness and codebase compliance.
-> Standards root: `standards/` | Severity: RULE_OF_LAW.md §8.1
+> Standards root: `standards/` | Severity levels: see RULE_OF_LAW.md §5, §3.2
 
 ## Summary Table
 
@@ -261,7 +261,7 @@ Use this structure:
 
 ---
 
-## Severity Reference (RULE_OF_LAW.md §8.1)
+## Severity Reference (RULE_OF_LAW.md §5, §3.2)
 
 | Severity | Definition |
 |----------|-----------|

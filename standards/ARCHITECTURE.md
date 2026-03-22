@@ -117,11 +117,11 @@ pub trait Widget: Send + Sync {
 #[non_exhaustive]
 pub enum WidgetData {
     Clock { display: String },
-    Cpu { usage_pct: f32, per_core: Vec<f32> },
+    Cpu { usage_pct: f32, per_core: Vec<f32>, temp_celsius: Option<f32> },
     Memory { used_bytes: u64, total_bytes: u64, swap_used: u64, swap_total: u64 },
     Network { rx_bytes_per_sec: u64, tx_bytes_per_sec: u64, interface: String },
-    Battery { charge_pct: f32, status: BatteryStatus },
-    Disk { mount: String, used_bytes: u64, total_bytes: u64 },
+    Battery { charge_pct: Option<f32>, status: BatteryStatus },
+    Disk { mount: String, used_bytes: u64, total_bytes: u64, all_disks: Vec<DiskEntry> },
     Workspaces { count: usize, active: usize, names: Vec<String> },
     Volume { volume_pct: f32, muted: bool },
     Brightness { brightness_pct: f32 },
@@ -212,9 +212,11 @@ parapet_bar/
 │   │   ├── media.rs    ← GtkLabel renderer; shows playback icon, title, and artist
 │   │   └── workspaces.rs ← GtkBox of workspace buttons (queries X11 EWMH _NET_NUMBER_OF_DESKTOPS)
 │   │   └── launcher.rs ← GtkButton + GtkPopover app search (bypasses Poller; self-contained GTK signals)
-│   ├── css.rs          ← CssProvider loading: user theme + built-in fallback
-│   └── config.rs       ← Config hot-reload via notify watcher
+│   └── css.rs          ← CssProvider loading: user theme + built-in fallback
 ```
+
+> **Note:** Config hot-reload is implemented in `main.rs` via `parapet_core::config::ConfigWatcher`.
+> There is no separate `config.rs` in `parapet_bar`.
 
 **UI rules:**
 - No business logic in GTK renderers — all data computation lives in `parapet_core`.
@@ -233,31 +235,37 @@ parapet_bar/
 main()
     │
     ▼
-Load ParapetConfig from ~/.config/parapet/config.toml
+1. Initialize tracing
     │
     ▼
-gtk::init() — initialize GTK3
+2. Parse CLI args (--init-config, --dump-schema, --theme)
     │
     ▼
-Bar::new(config) — create GtkWindow, set _NET_WM_WINDOW_TYPE_DOCK
+3. Load ParapetConfig from ~/.config/parapet/config.toml
     │
     ▼
-Set _NET_WM_STRUT_PARTIAL — reserve screen space
+4. gtk::init() — initialize GTK3
     │
     ▼
-Instantiate widget renderers from config.widgets list
+5. Bar::new(config) — create GtkWindow, set _NET_WM_WINDOW_TYPE_DOCK
     │
     ▼
-Instantiate Poller with configured intervals
+6. Resolve & load CSS theme via CssProvider (dark/light variant detection)
     │
     ▼
-Register glib::timeout_add_local — drives Poller::poll() on each tick
+7. Build widget renderers; register core widgets with Poller
     │
     ▼
-Load CSS theme via CssProvider
+8. Register glib timer (100 ms tick) — drives Poller::poll()
     │
     ▼
-gtk::main() — event loop
+9. Register SIGTERM handler (ctrlc → mpsc channel → gtk::main_quit)
+    │
+    ▼
+10. Start ConfigWatcher (config) + ConfigWatcher (CSS file)
+    │
+    ▼
+11. bar.show() + gtk::main() — event loop
 ```
 
 ### 6.2 Widget Update Cycle

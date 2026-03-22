@@ -14,8 +14,8 @@ pub use widget::{BatteryStatus, DiskEntry, Widget, WidgetData, WIDGET_API_VERSIO
 pub mod config;
 pub use config::{
     config_schema_json, BarConfig, BarPosition, BarSection, BatteryConfig, BrightnessConfig,
-    ClockConfig, ConfigWatcher, CpuConfig, DiskConfig, ParapetConfig, LauncherConfig, MediaConfig,
-    MemoryConfig, MonitorTarget, NetworkConfig, SeparatorConfig, VolumeConfig, WeatherConfig,
+    ClockConfig, ConfigWatcher, CpuConfig, DiskConfig, LauncherConfig, MediaConfig, MemoryConfig,
+    MonitorTarget, NetworkConfig, ParapetConfig, SeparatorConfig, VolumeConfig, WeatherConfig,
     WidgetConfig, WidgetKind, WorkspacesConfig,
 };
 

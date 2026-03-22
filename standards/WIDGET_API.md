@@ -98,8 +98,11 @@ pub enum WidgetData {
         /// Aggregate CPU usage across all cores, as a percentage 0.0–100.0.
         usage_pct: f32,
         /// Per-core usage percentages, in logical core order.
-        per_core: Vec<f32>,        /// CPU package temperature in °C, or `None` when no sensor is available.
-        temp_celsius: Option<f32>,    },
+        per_core: Vec<f32>,
+        /// CPU package temperature in °C, or `None` when no sensor is available
+        /// (VM guests, hardware without coretemp/k10temp modules).
+        temp_celsius: Option<f32>,
+    },
 
     /// Memory usage statistics.
     Memory {

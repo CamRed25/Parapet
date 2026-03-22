@@ -92,7 +92,9 @@ extern "C" {
     );
 }
 
-// GdkFilterReturn: GDK_FILTER_CONTINUE = 0, GDK_FILTER_REMOVE = 1
+// GdkFilterReturn: GDK_FILTER_CONTINUE = 0, GDK_FILTER_TRANSLATE = 1, GDK_FILTER_REMOVE = 2
+// NOTE (corrected 2026-03-22): prior value GDK_FILTER_REMOVE = 1 was wrong.
+// Confirmed from gdk-sys-0.18.2/src/lib.rs: pub const GDK_FILTER_REMOVE: GdkFilterReturn = 2;
 unsafe extern "C" fn workspace_event_filter(
     xevent_ptr: *mut c_void,
     _gdk_event: *mut c_void,

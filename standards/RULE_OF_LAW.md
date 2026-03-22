@@ -29,6 +29,9 @@ All `.md` files in `standards/` are authoritative. When conflicts arise, resolve
 | 8 | **TESTING_GUIDE.md** | Test suite structure, headless test policy |
 | 9 | **PLATFORM_COMPAT.md** | Distro support, X11/Cinnamon requirements |
 | 10 | **UI_GUIDE.md** | GTK3 conventions, CSS theming, widget rendering |
+| 11 | **RELEASE_GUIDE.md** | Release checklist, version tagging, binary distribution |
+| 12 | **AGENT_GUIDE.md** | AI agent customization files, module table maintenance |
+| 13 | **SECURITY.md** | Dependency vulnerability scanning, unsafe hygiene, CVE response |
 
 If a standard contradicts a higher-priority standard, the higher-priority document wins. Update the lower-priority document to resolve the conflict.
 

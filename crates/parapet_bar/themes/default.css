@@ -122,6 +122,10 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
+.widget-launcher.launcher-open {
+    color: @color-accent;
+}
+
 .launcher-search {
     margin: 4px;
 }

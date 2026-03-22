@@ -93,7 +93,7 @@ fn main() -> anyhow::Result<()> {
         found
     };
 
-    // ── 2. Config ───────────────────────────────────────────────────────────
+    // ── 3. Config ───────────────────────────────────────────────────────────
     let config_path = std::env::var("PARAPET_CONFIG")
         .map_or_else(|_| ParapetConfig::default_path(), std::path::PathBuf::from);
 
@@ -110,15 +110,15 @@ fn main() -> anyhow::Result<()> {
     };
     tracing::debug!("config loaded ({:.1}ms)", t0.elapsed().as_secs_f64() * 1000.0);
 
-    // ── 5. GTK init ─────────────────────────────────────────────────────────
+    // ── 4. GTK init ─────────────────────────────────────────────────────────
     gtk::init().context("failed to initialize GTK")?;
     tracing::debug!("GTK initialised ({:.1}ms)", t0.elapsed().as_secs_f64() * 1000.0);
 
-    // ── 6. Bar window ───────────────────────────────────────────────────────
+    // ── 5. Bar window ───────────────────────────────────────────────────────
     let bar_rc = Rc::new(bar::Bar::new(&config.bar));
     tracing::debug!("bar window created ({:.1}ms)", t0.elapsed().as_secs_f64() * 1000.0);
 
-    // ── 7. CSS theme — resolve source, detect dark/light variant, load ──────
+    // ── 6. CSS theme — resolve source, detect dark/light variant, load ──────
     //
     // Priority: --theme CLI > bar.theme config > bar.css raw path > built-in.
     // After GTK init so that resolve_theme_variant can read GtkSettings.
@@ -131,7 +131,7 @@ fn main() -> anyhow::Result<()> {
         Rc::new(RefCell::new(css::load_theme(theme_source)));
     css::apply_provider(&provider.borrow());
 
-    // ── 8. Widgets ──────────────────────────────────────────────────────────
+    // ── 7. Widgets ──────────────────────────────────────────────────────────
     let poller: Rc<RefCell<Poller>> = Rc::new(RefCell::new(Poller::new()));
     let renderers: Rc<RefCell<Vec<Rc<dyn RendererDispatch>>>> = Rc::new(RefCell::new(Vec::new()));
     let self_poll_ids: Rc<RefCell<Vec<glib::SourceId>>> = Rc::new(RefCell::new(Vec::new()));
@@ -145,7 +145,7 @@ fn main() -> anyhow::Result<()> {
     );
     tracing::debug!("widgets built ({:.1}ms)", t0.elapsed().as_secs_f64() * 1000.0);
 
-    // ── 9. Polling timer ────────────────────────────────────────────────────
+    // ── 8. Polling timer ────────────────────────────────────────────────────
     // Tick every 100 ms; each widget fires only when its own interval elapses.
     {
         let poller = Rc::clone(&poller);
@@ -161,9 +161,12 @@ fn main() -> anyhow::Result<()> {
         });
     }
 
-    // ── 10. SIGTERM handler ─────────────────────────────────────────────────
+    // ── 9. SIGTERM handler ───────────────────────────────────────────
     let (sig_tx, sig_rx) = mpsc::channel::<()>();
     ctrlc::set_handler(move || {
+        // let _ justified: send() only fails when gtk::main_quit() was already
+        // called and the receiver is dropped. Failure here means shutdown is
+        // already in progress — no action needed.
         let _ = sig_tx.send(());
     })
     .context("failed to install signal handler")?;
@@ -177,7 +180,7 @@ fn main() -> anyhow::Result<()> {
         ControlFlow::Continue
     });
 
-    // ── 11. Config hot-reload watcher + CSS file hot-reload watcher ─────────
+    // ── 10. Config hot-reload watcher + CSS file hot-reload watcher ─────────
     let config_watcher = match ConfigWatcher::new(&config_path) {
         Ok(w) => {
             tracing::info!(path = %config_path.display(), "config watcher started");
@@ -294,7 +297,7 @@ fn main() -> anyhow::Result<()> {
         });
     }
 
-    // ── 12. Bar show + main loop ─────────────────────────────────────────────
+    // ── 11. Bar show + main loop ─────────────────────────────────────────────
     bar_rc.show();
     tracing::debug!(
         "bar ready, entering main loop ({:.1}ms total)",
@@ -564,7 +567,8 @@ fn build_widget(bar: &bar::Bar, poller: &mut Poller, config: &WidgetConfig) -> B
             let interval = config.interval.unwrap_or(2000);
 
             let interface = network.interface.clone().unwrap_or_else(|| "eth0".to_string());
-            let core_widget = parapet_core::widgets::network::NetworkWidget::new(&name, &interface)?;
+            let core_widget =
+                parapet_core::widgets::network::NetworkWidget::new(&name, &interface)?;
             poller.register(Box::new(core_widget), interval);
 
             let renderer = widgets::network::NetworkWidget::new(network)
@@ -620,13 +624,15 @@ fn build_widget(bar: &bar::Bar, poller: &mut Poller, config: &WidgetConfig) -> B
             // Initial fill.
             renderer.refresh();
 
-            // Self-polling timer: refresh workspace buttons every 500 ms.
-            // The SourceId is returned so it can be cancelled on hot-reload.
+            // Self-poll dispatcher: fires every `interval_ms` milliseconds.
+            // On x86_64 the gdk_window_add_filter sets the dirty flag on PropertyNotify;
+            // this closure calls refresh() only when the flag is set.
+            // On non-x86_64 fallback: refresh() runs unconditionally every tick.
             let renderer_clone = Rc::clone(&renderer);
-            let interval_ms = config.interval.unwrap_or(500);
+            let interval_ms = config.interval.unwrap_or(100);
             let source_id =
                 glib::timeout_add_local(Duration::from_millis(interval_ms), move || {
-                    renderer_clone.refresh();
+                    renderer_clone.refresh_if_dirty();
                     ControlFlow::Continue
                 });
 
@@ -665,8 +671,9 @@ fn build_widget(bar: &bar::Bar, poller: &mut Poller, config: &WidgetConfig) -> B
                 "fahrenheit" => parapet_core::widget::TempUnit::Fahrenheit,
                 _ => parapet_core::widget::TempUnit::Celsius,
             };
-            let core_widget =
-                parapet_core::widgets::weather::WeatherWidget::new(&name, latitude, longitude, unit);
+            let core_widget = parapet_core::widgets::weather::WeatherWidget::new(
+                &name, latitude, longitude, unit,
+            );
             poller.register(Box::new(core_widget), interval);
             let renderer = widgets::weather::WeatherWidget::new(weather)
                 .context("weather renderer construction failed")?;

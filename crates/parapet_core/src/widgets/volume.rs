@@ -59,10 +59,7 @@ fn read_volume_info() -> Option<(f32, bool)> {
     let vol_text = String::from_utf8_lossy(&vol_out.stdout);
     let vol = parse_volume_pct(&vol_text)?;
 
-    let mute_out = Command::new("pactl")
-        .args(["get-sink-mute", "@DEFAULT_SINK@"])
-        .output()
-        .ok()?;
+    let mute_out = Command::new("pactl").args(["get-sink-mute", "@DEFAULT_SINK@"]).output().ok()?;
     let mute_text = String::from_utf8_lossy(&mute_out.stdout);
     let muted = parse_mute(&mute_text);
 
@@ -157,7 +154,10 @@ impl VolumeWidget {
 
         // Warm the cache before spawning so update() has real data immediately.
         let initial = read_volume_info().map_or(
-            WidgetData::Volume { volume_pct: 0.0, muted: false },
+            WidgetData::Volume {
+                volume_pct: 0.0,
+                muted: false,
+            },
             |(volume_pct, muted)| WidgetData::Volume { volume_pct, muted },
         );
 
@@ -187,15 +187,18 @@ impl Widget for VolumeWidget {
     }
 
     fn update(&mut self) -> Result<WidgetData, ParapetError> {
-        let rx = self.rx.lock().expect(
-            "volume subscribe rx mutex poisoned; this indicates a bug in subscribe_loop",
-        );
+        let rx = self
+            .rx
+            .lock()
+            .expect("volume subscribe rx mutex poisoned; this indicates a bug in subscribe_loop");
 
         loop {
             match rx.try_recv() {
                 Ok(data) => {
-                    self.cached =
-                        WidgetData::Volume { volume_pct: data.volume_pct, muted: data.muted };
+                    self.cached = WidgetData::Volume {
+                        volume_pct: data.volume_pct,
+                        muted: data.muted,
+                    };
                 }
                 Err(mpsc::TryRecvError::Empty) => break,
                 Err(mpsc::TryRecvError::Disconnected) => {

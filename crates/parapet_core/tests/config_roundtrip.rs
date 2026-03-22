@@ -3,7 +3,10 @@
 //! Verifies that each config struct can be serialized to TOML and deserialized
 //! back to an equal value (per TESTING_GUIDE §6).
 
-use parapet_core::config::{BarConfig, BarPosition, BarSection, ClockConfig, ParapetConfig, LauncherConfig, WidgetConfig, WidgetKind};
+use parapet_core::config::{
+    BarConfig, BarPosition, BarSection, ClockConfig, LauncherConfig, ParapetConfig, WidgetConfig,
+    WidgetKind,
+};
 
 #[test]
 fn bar_config_round_trips_through_toml() {
@@ -256,6 +259,7 @@ fn launcher_config_round_trips_all_fields() {
         popup_width: Some(320),
         popup_min_height: Some(300),
         pinned: vec!["firefox".to_string(), "code".to_string()],
+        hover_delay_ms: Some(200),
     };
 
     let serialized = toml::to_string(&config).expect("serialize LauncherConfig");
@@ -267,6 +271,7 @@ fn launcher_config_round_trips_all_fields() {
     assert_eq!(config.popup_width, deserialized.popup_width);
     assert_eq!(config.popup_min_height, deserialized.popup_min_height);
     assert_eq!(config.pinned, deserialized.pinned);
+    assert_eq!(config.hover_delay_ms, deserialized.hover_delay_ms);
 }
 
 #[test]

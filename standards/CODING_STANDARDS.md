@@ -171,6 +171,17 @@ let config = ParapetConfig::load(&path).unwrap();
 - `main()` for fatal startup failures where there is genuinely no recovery
 - Mutex lock with an invariant message explaining why poisoning cannot occur
 
+`unreachable!()` is permitted when the unreachable branch is guarded by a documented compile-time or external-API invariant. Always precede it with a `// SAFETY:` or `// INVARIANT:` comment explaining why the branch cannot be reached:
+
+```rust
+// INVARIANT: stdout is always Some when Stdio::piped() is set — stdlib guarantee.
+let Some(stdout) = child.stdout.take() else {
+    unreachable!("pactl subscribe stdout not captured despite Stdio::piped()")
+};
+```
+
+Do **not** use `unreachable!()` as a lazy exhaustiveness substitute where a proper `match` arm would express intent more clearly.
+
 ### 3.4 Error Context
 
 Always add context when propagating errors across module boundaries:
@@ -199,6 +210,29 @@ if let Err(e) = widget.update() {
 // Correct — propagate if fatal
 widget.update().context("widget update failed")?;
 ```
+
+`let _ =` on a `Result` is permitted in **two specific cases**, each requiring an explanatory comment:
+
+1. **Signal-handler `mpsc::Sender::send()`** — A `send()` error in a `ctrlc` or OS signal handler means the receiver was dropped (i.e. `gtk::main_quit()` was already called and shutdown is in progress). Failure is safe to ignore:
+
+```rust
+ctrlc::set_handler(move || {
+    // let _ justified: Disconnected error means shutdown already in progress.
+    let _ = sig_tx.send(());
+});
+```
+
+2. **Background-thread channel `send()`** where the receiver being dropped is a normal and expected shutdown path (not an error condition). The thread is typically spawned to feed data to a widget; when the widget is dropped, the receiver is dropped, and the next send signals the thread to exit cleanly:
+
+```rust
+std::thread::spawn(move || {
+    let data = collect_slow_data();
+    // let _ justified: receiver dropped = widget was torn down; exit cleanly.
+    let _ = tx.send(data);
+});
+```
+
+In all other cases, handle or propagate the error explicitly.
 
 ---
 

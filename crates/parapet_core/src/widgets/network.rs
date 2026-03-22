@@ -31,7 +31,10 @@ impl NetworkWidget {
     ///
     /// This constructor does not currently return `Err`; the signature reserves
     /// the right for future fallible initialisation.
-    pub fn new(name: impl Into<String>, interface: impl Into<String>) -> Result<Self, ParapetError> {
+    pub fn new(
+        name: impl Into<String>,
+        interface: impl Into<String>,
+    ) -> Result<Self, ParapetError> {
         let mut networks = Networks::new_with_refreshed_list();
 
         let resolved_interface = {
