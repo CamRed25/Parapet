@@ -11,8 +11,8 @@ A Rust-native GTK3 status bar for the Cinnamon desktop on Linux. Parapet anchors
 ## Features
 
 - Pill-island layout — widgets rendered as floating dark pills against a transparent bar, with the wallpaper visible between them
-- Workspace switcher with click-to-switch (sends `_NET_CURRENT_DESKTOP` via `wmctrl`)
-- Application launcher popup with fuzzy search, keyboard navigation, and live app-list refresh via `gio::AppInfoMonitor`
+- Workspace switcher with click-to-switch (sends `_NET_CURRENT_DESKTOP` via `wmctrl`); event-driven updates on `x86_64` via `gdk_window_add_filter`
+- Application launcher popup with fuzzy search, keyboard navigation, live app-list refresh via `gio::AppInfoMonitor`, and configurable hover-open delay (`hover_delay_ms`)
 - Audio volume via `pactl subscribe` (event-driven, no per-poll subprocess) with scroll-to-adjust
 - Weather from the [Open-Meteo](https://open-meteo.com/) free API — no API key needed
 - MPRIS2 media widget via D-Bus (`zbus`) — shows currently playing track and responds to `playerctl`
@@ -37,7 +37,7 @@ A Rust-native GTK3 status bar for the Cinnamon desktop on Linux. Parapet anchors
 cargo build --release
 ```
 
-The binary is at `target/release/parapet`.
+The binary is at `target/release/parapet_bar`.
 
 ---
 
@@ -46,12 +46,12 @@ The binary is at `target/release/parapet`.
 Copy the binary somewhere on `$PATH` and drop a config file at `~/.config/parapet/config.toml`:
 
 ```bash
-install -Dm755 target/release/parapet ~/.local/bin/parapet
+install -Dm755 target/release/parapet_bar ~/.local/bin/frames_bar
 mkdir -p ~/.config/parapet
 cp examples/config.toml ~/.config/parapet/config.toml   # if provided
 ```
 
-Then add `parapet &` to your Cinnamon startup commands (System Settings → Startup Applications).
+Then add `frames_bar &` to your Cinnamon startup commands (System Settings → Startup Applications).
 
 ---
 
@@ -112,13 +112,26 @@ position = "right"
 | `disk` | Filesystem usage (`mount`, `format`) | 30 s |
 | `volume` | PulseAudio/PipeWire volume (`show_icon`) | event-driven |
 | `brightness` | Backlight (`show_icon`) | 5 s |
-| `workspaces` | Clickable workspace buttons (`show_names`) | event-driven |
-| `launcher` | Fuzzy app launcher popup | — |
+| `workspaces` | Clickable workspace buttons (`show_names`) | event-driven (100 ms fallback) |
+| `launcher` | Fuzzy app launcher popup (`hover_delay_ms` for open delay) | — |
 | `weather` | Current conditions (`latitude`, `longitude`, `units`) | 30 min |
 | `media` | MPRIS2 now playing | 2 s |
 | `separator` | Visual divider (`format` for glyph, default `"\|"`) | — |
 
 All widget entries accept common fields: `interval`, `label`, `on_click`, `on_scroll_up`, `on_scroll_down`, `extra_class`.
+
+### Full launcher widget example
+
+```toml
+[[widgets]]
+type = "launcher"
+position = "center"
+hover_delay_ms = 150
+max_results = 10
+button_label = "Apps"
+popup_width = 400
+popup_min_height = 300
+```
 
 ### Full volume widget example
 
